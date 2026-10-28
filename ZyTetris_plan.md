@@ -3,7 +3,7 @@
 Un juego de piezas que caen, escrito en Zymbol con **núcleo en ruso (cirílico)**, para validar el
 lenguaje con una escritura que todavía no recorre ningún otro proyecto, y para sumar otro juego a los
 repositorios. Este plan lo redacta Claude; lo marcado **(verificado)** lo comprobé con
-`zymbol 0.0.11` (rama `v0.0.11`, commit `05256b3`) en la VM y en el árbol; lo marcado
+`zymbol 0.0.11` (rama `v0.0.11`, commit `a4a59e1`) en la VM y en el árbol; lo marcado
 **(predicción)** es una hipótesis sin probar. Este plan no sustituye a lo que decida el autor.
 
 ## 1. Objetivo y alcance
