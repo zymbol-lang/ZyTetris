@@ -1,0 +1,7 @@
+// tetris.zy — entry point · English · zymbol run tetris.zy [-- seed]
+// In the game: L changes the language, K the skin.
+<# ./игра => игра
+<# ./ввод => ввод
+
+><args
+игра::начать("en", "скобки", ввод::семя(args), "рекорды.json")

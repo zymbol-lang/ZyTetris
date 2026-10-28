@@ -1,0 +1,46 @@
+// ядро/правила.zy — score, level, speed and the dice.
+// The dice are a Park–Miller generator of our own so a test fixes the whole game with one
+// number; std/random only supplies the seed of a real game. The rules of the 1984 original
+// are not known to the author: the numbers below are the usual ones of later versions.
+# правила {
+    <# ./фигуры => ф
+
+    #> { очки_за_линии, уровень, порог, шаг, вид_из, привить, МАКС_СЕМЯ }
+
+    МАКС_СЕМЯ := 2147483646
+
+    очки_за_линии(n, ур) { <~ ?? n {
+        1 => 40 * ур
+        2 => 100 * ур
+        3 => 300 * ур
+        4 => 1200 * ур
+        _ => 0
+    } }
+
+    // Ten lines per level.
+
+    уровень(линии) { <~ 1 + линии / 10 }
+
+    // Frames of 50 ms that a piece waits before it falls one row; never fewer than 2.
+
+    порог(ур) {
+        п = 12 - ур
+        ? п < 2 { <~ 2 }
+        <~ п
+    }
+
+    // Any integer becomes a valid state of the generator (1..2147483646).
+
+    привить(n) {
+        с = n % 2147483647
+        ? с < 0 { с = с + 2147483647 }
+        ? с == 0 { с = 1 }
+        <~ с
+    }
+
+    // 48271 * 2147483646 < 2^53, so the product never leaves the safe integers.
+
+    шаг(с) { <~ (с * 48271) % 2147483647 }
+
+    вид_из(с) { <~ с % ф.ВИДОВ + 1 }
+}

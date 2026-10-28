@@ -1,0 +1,60 @@
+// рекорды.zy — the best scores: [[имя, очки], …] best first, at most five, saved as JSON.
+// A file that is missing or not valid JSON is an empty table, never a stop (soft errors).
+// Valid JSON of another shape is not checked: the type symbols of `#?` cannot be compared.
+// In the browser std/io is a per-run virtual disk: the table lives as long as the page run.
+# рекорды {
+    <# std/io => io
+    <# std/json => js
+
+    #> { МАКС, пустые, загрузить, сохранить, подходит, вставить, строка }
+
+    МАКС := 5
+
+    пустые() { <~ [] }
+
+    загрузить(путь) {
+        ? io::exists(путь) == #0 { <~ [] }
+        текст = io::read(путь)
+        ? текст$! { <~ [] }
+        данные = js::decode(текст)
+        ? данные$! { <~ [] }
+        <~ данные
+    }
+
+    сохранить(путь, таблица) { io::write(путь, js::encode(таблица)) }
+
+    // #1 if a score of this size would enter the table.
+
+    подходит(таблица, очки) {
+        ? очки <= 0 { <~ #0 }
+        ? таблица$# < МАКС { <~ #1 }
+        последний = таблица[таблица$#]
+        <~ очки > последний[2]
+    }
+
+    // A new score goes after every equal one (the older record keeps its place).
+
+    вставить(таблица, имя, очки) {
+        новая = []
+        вставлено = #0
+        @ запись:таблица {
+            ? вставлено == #0 && очки > запись[2] {
+                новая = новая $+ [имя, очки]
+                вставлено = #1
+            }
+            новая = новая $+ запись
+        }
+        ? вставлено == #0 { новая = новая $+ [имя, очки] }
+        итог = []
+        @ запись:новая {
+            ? итог$# < МАКС { итог = итог $+ запись }
+        }
+        <~ итог
+    }
+
+    строка(место, запись) {
+        имя = запись[1]
+        очки = запись[2]
+        <~ "{место}. {имя} {очки}"
+    }
+}

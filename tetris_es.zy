@@ -1,0 +1,7 @@
+// tetris_es.zy — punto de entrada · español · zymbol run tetris_es.zy [-- semilla]
+// En partida: L cambia el idioma, K la piel.
+<# ./игра => игра
+<# ./ввод => ввод
+
+><args
+игра::начать("es", "скобки", ввод::семя(args), "рекорды.json")

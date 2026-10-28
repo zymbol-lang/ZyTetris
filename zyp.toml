@@ -1,0 +1,21 @@
+[package]
+name = "ZyTetris"
+version = "0.2.0"
+engine = ">=0.0.11"
+mode = "vm"
+
+[[script]]
+name = "тетраис"
+path = "тетраис.zy"
+default = true
+desc = "Русский"
+
+[[script]]
+name = "tetris"
+path = "tetris.zy"
+desc = "English"
+
+[[script]]
+name = "tetris_es"
+path = "tetris_es.zy"
+desc = "Español"

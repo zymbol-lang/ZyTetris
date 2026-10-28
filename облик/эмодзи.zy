@@ -1,0 +1,25 @@
+// облик/эмодзи.zy — coloured squares. There is no cyan square in Unicode: the I is white.
+// Squares are Unicode 12 (2019); an old terminal draws them as an empty box.
+// The brown square 🟫 is kept for a ghost piece or garbage rows.
+# эмодзи {
+
+    #> { имя, пусто, клетка, цвет }
+
+    имя() { <~ "эмодзи" }
+
+    пусто() { <~ "⬛" }
+
+    клетка(вид) { <~ ?? вид {
+        1 => "⬜"
+        2 => "🟨"
+        3 => "🟪"
+        4 => "🟩"
+        5 => "🟥"
+        6 => "🟦"
+        _ => "🟧"
+    } }
+
+    // The glyph carries its own colour: 0 means "draw it plain".
+
+    цвет(вид) { <~ 0 }
+}

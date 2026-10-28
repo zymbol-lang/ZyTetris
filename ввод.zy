@@ -1,0 +1,68 @@
+// ввод.zy — a key becomes an action, in either keyboard layout.
+// On the ЙЦУКЕН layout the keys of the game arrive as whole characters (ц ф ы в), so the
+// same action has a Latin and a Cyrillic spelling. There is no case function in the language
+// (R12): the folding below is done on the code points.
+# ввод {
+
+    #> { строчная, действие, число, семя }
+
+    // Latin A–Z and Cyrillic А–Я, Ё fold to lower case; everything else is returned as it is.
+    строчная(к) {
+        код = ##!к
+        ? код >= 65 && код <= 90 { <~ ##'(код + 32) }
+        ? код >= 1040 && код <= 1071 { <~ ##'(код + 32) }
+        ? код == 1025 { <~ ##'1105 }
+        <~ к
+    }
+
+    действие(к) {
+        код = ##!к
+        ? код == 27 { <~ "выход" }
+        ? код == 32 { <~ "сброс" }
+        м = строчная(к)
+        <~ ?? м {
+            '←' => "влево"
+            'a' => "влево"
+            'ф' => "влево"
+            '→' => "вправо"
+            'd' => "вправо"
+            'в' => "вправо"
+            '↑' => "поворот"
+            'w' => "поворот"
+            'ц' => "поворот"
+            '↓' => "вниз"
+            's' => "вниз"
+            'ы' => "вниз"
+            'p' => "пауза"
+            'з' => "пауза"
+            'q' => "выход"
+            'й' => "выход"
+            'l' => "язык"
+            'д' => "язык"
+            'k' => "облик"
+            'л' => "облик"
+            _ => ""
+        }
+    }
+
+    // The digits of a text as an Int; 0 for anything that is not 1 to 15 digits (there is no
+    // text-to-number cast in the language, so the games each write their own).
+
+    число(т) {
+        ? т$# < 1 || т$# > 15 { <~ 0 }
+        н = 0
+        @ к:т {
+            код = ##!к
+            ? код < 48 || код > 57 { <~ 0 }
+            н = н * 10 + (код - 48)
+        }
+        <~ н
+    }
+
+    // The seed asked for on the command line, `zymbol run тетраис.zy -- 42`; 0 means "any".
+
+    семя(аргументы) {
+        ? аргументы$# < 1 { <~ 0 }
+        <~ число(аргументы[1])
+    }
+}

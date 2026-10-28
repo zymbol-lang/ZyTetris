@@ -1,0 +1,16 @@
+// облик/прямоугольники.zy — solid blocks, the nearest thing to the first version's rectangles.
+// Warning: █ has "ambiguous" width; in a CJK locale a terminal may draw it in 2 columns each,
+// making the cell 4 wide.
+# прямоугольники {
+    <# ./скобки => с
+
+    #> { имя, пусто, клетка, цвет }
+
+    имя() { <~ "прямоугольники" }
+
+    пусто() { <~ "  " }
+
+    клетка(вид) { <~ "██" }
+
+    цвет(вид) { <~ с::цвет(вид) }
+}

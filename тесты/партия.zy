@@ -1,0 +1,5 @@
+// тесты/партия.zy — a scripted game: fixed seed, keys from a file, the last frame as the golden.
+// zymbol run --keys партия_1.keys партия.zy
+<# ../игра => игра
+
+игра::начать("ru", "скобки", 7, "рекорды_тест.json")

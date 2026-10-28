@@ -1,0 +1,65 @@
+// ядро/стакан.zy — the well: a flat 10×20 array, 0 = empty, 1..7 = the kind that filled it.
+// Pure functions: the board goes in, the new board comes out. No screen, no clock.
+# стакан {
+    <# ./фигуры => ф
+
+    #> { ШИРИНА, ВЫСОТА, РАЗМЕР, пустой, индекс, столкновение, закрепить, убрать_линии }
+
+    ШИРИНА := 10
+    ВЫСОТА := 20
+    РАЗМЕР := 200
+
+    пустой() {
+        п = []
+        @ _i:1..РАЗМЕР { п = п $+ 0 }
+        <~ п
+    }
+
+    индекс(x, y) { <~ (y - 1) * ШИРИНА + x }
+
+    // #1 if the piece would leave the well at the sides or the floor, or overlap a filled cell.
+    // Cells above the top (y < 1) are free: a piece is born half outside.
+
+    столкновение(поле, вид, пов, px, py) {
+        к = ф::клетки(вид, пов, px, py)
+        @ i:1..4 {
+            x = к[(i - 1) * 2 + 1]
+            y = к[(i - 1) * 2 + 2]
+            ? x < 1 || x > ШИРИНА || y > ВЫСОТА { <~ #1 }
+            ? y >= 1 {
+                ? поле[индекс(x, y)] <> 0 { <~ #1 }
+            }
+        }
+        <~ #0
+    }
+
+    закрепить(поле, вид, пов, px, py) {
+        к = ф::клетки(вид, пов, px, py)
+        @ i:1..4 {
+            x = к[(i - 1) * 2 + 1]
+            y = к[(i - 1) * 2 + 2]
+            ? y >= 1 && y <= ВЫСОТА { поле[индекс(x, y)]$~ вид }
+        }
+        <~ поле
+    }
+
+    // (new board, number of lines removed). Walks up from the floor copying every row that is
+    // not full to where the last copied row went; the top is left empty.
+
+    убрать_линии(поле) {
+        чисто = пустой()
+        куда = ВЫСОТА
+        убрано = 0
+        @ откуда:ВЫСОТА..1 {
+            полная = #1
+            @ x:1..ШИРИНА {
+                ? поле[индекс(x, откуда)] == 0 { полная = #0 }
+            }
+            ? полная { убрано = убрано + 1 } _ {
+                @ x:1..ШИРИНА { чисто[индекс(x, куда)]$~ поле[индекс(x, откуда)] }
+                куда = куда - 1
+            }
+        }
+        <~ (чисто, убрано)
+    }
+}

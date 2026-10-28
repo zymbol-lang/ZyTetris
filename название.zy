@@ -1,0 +1,8 @@
+// название.zy — the name of the game, in one place. Rename it here and in the README's first line.
+// "Tetris" is a registered mark whose holder has acted against clones (not legal advice).
+# название {
+
+    #> { НАЗВАНИЕ }
+
+    НАЗВАНИЕ := "ТЕТРАИС"
+}
