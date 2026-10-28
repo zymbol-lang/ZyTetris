@@ -14,14 +14,16 @@
 >
 > **Estado.** Todas las entradas están **ABIERTAS**: nada está decidido. El autor decide, hallazgo
 > por hallazgo, si se implementa, se aplaza o se rechaza. Medido con `zymbol 0.0.11` (VM y árbol)
-> y con `web/src/zymbol/zymbol.js` (motor del navegador), el 2026-10-27.
+> y con `web/src/zymbol/zymbol.js` (motor del navegador), el 2026-10-27. El **2026-10-28** se
+> corrigió el enunciado de GAP-TET-006, que era falso, y al corregirlo salió BUG-TET-009.
 
 ---
 
 ## Veredicto
 
-**No pasó directo.** De las sondas del plan salieron una divergencia entre motores y cinco huecos.
-Ninguno salió del código del juego: el juego, construido sobre el núcleo cirílico, corrió limpio
+**No pasó directo.** De las sondas del plan salieron una divergencia entre motores y cinco huecos;
+uno de los huecos (GAP-TET-006) resultó ser una capacidad que existía y no se encontró, y al
+corregirlo apareció una segunda divergencia (BUG-TET-009). Ninguno salió del código del juego: el juego, construido sobre el núcleo cirílico, corrió limpio
 (más abajo). Lo que movió el dominio cirílico fueron las *primitivas de texto* del lenguaje:
 
 | Qué se comprobó | Resultado |
@@ -46,9 +48,10 @@ Windows, ni la velocidad del motor del navegador bajo carga.
 | [GAP-TET-003](#gap-tet-003) | GAP | lexer | `й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1) | los tres | ABIERTO |
 | [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2) | los tres | ABIERTO |
 | [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12) | los tres | ABIERTO |
-| [GAP-TET-006](#gap-tet-006) | GAP | lenguaje | no hay conversión de texto a Int: `###"42"` es un error; el argumento de semilla necesita un analizador escrito a mano | los tres | ABIERTO |
+| [GAP-TET-006](#gap-tet-006) | GAP | texto → número | ~~no hay conversión de texto a Int: `###"42"` es un error; el argumento de semilla necesita un analizador escrito a mano~~ — `#\|texto\|` lo hace; lo que falla es que la forma no se encuentra | los tres | **retirado como incapacidad** 2026-10-28 · la descubribilidad sigue en GAP-ZYE-008 |
 | [IDEA-TET-007](#idea-tet-007) | IDEA | lenguaje | los símbolos de tipo de `#?` (salvo `##_`) no se pueden escribir en una expresión ni en un patrón | los tres | ABIERTO |
 | [IDEA-TET-008](#idea-tet-008) | IDEA | `zymbol-formatter` | un arreglo de 8 números con dos o más negativos se rompe en un número por línea; el mismo arreglo sin negativos queda en una línea | `zymbol fmt` | ABIERTO |
+| [BUG-TET-009](#bug-tet-009) | BUG | `zymbol.js` | `#\|texto\|` con un entero fuera de ±(2^53−1) da un Int, y lo redondea sin avisar; los motores de Rust devuelven el texto intacto | **zyjs es el distinto** | ABIERTO |
 
 Cada reproducción es un programa completo. Ejecútalo tal como está escrito.
 
@@ -81,6 +84,39 @@ el navegador. Los operadores de comparación coinciden en los tres (`"Z" < "a"` 
 No lo ve la puerta: el corpus no tiene ningún programa que ordene textos con mayúsculas y
 minúsculas mezcladas o con caracteres no ASCII. El juego no ordena texto (la tabla de récords se
 ordena por puntos), así que el fallo se encontró con la sonda R3 del plan y no jugando.
+
+### BUG-TET-009
+
+**`#|texto|` con un entero fuera de ±(2^53−1): el motor del navegador da un Int, y no siempre
+el escrito; los motores de Rust devuelven el texto intacto.**
+
+```zymbol
+n = #|"9007199254740993"|
+>> n " " (n#?)[1] ¶
+```
+
+| Motor | Respuesta |
+|---|---|
+| zytw | `9007199254740993 ##"` |
+| zyvm | `9007199254740993 ##"` |
+| zyjs | `9007199254740992 ###` |
+
+zyjs cambia el número sin avisar: `9007199254740993` no tiene representación exacta y queda en
+`9007199254740992`. Con `"99999999999999999999"` da `100000000000000000000` como Int. Lo que pasa
+después también diverge: `n + 1` es en los motores de Rust el error de `+` sobre un texto, y en
+zyjs un `integer overflow` en esa línea.
+
+La causa está en `web/src/zymbol/zymbol.js`, línea 10711, el `case 'eval'` de `#|…|`:
+`mkInt(p)` sin comprobar el rango. El mismo archivo tiene un segundo camino para lo mismo,
+`parseNumericInput` (línea 7824, la entrada `<< #|v|`), que **sí** lo comprueba
+(`inIntRange(n) ? mkInt(n) : mkStr(s)`), y cuyo comentario describe exactamente este caso:
+*«which would answer 9007199254740992 for "9007199254740993"»*. Se arregló uno de los dos
+caminos.
+
+No lo ve la puerta: `casts/cifra_de_cualquier_escritura.zy` no prueba números grandes, y las
+celdas del límite en ZyDDT (`axes/arithmetic.toml`, `axes/diagnostic.toml`) prueban el literal
+y la aritmética, no la lectura de un texto. Salió al corregir GAP-TET-006: un argumento de
+semilla es justo un texto de cualquier tamaño que llega de fuera.
 
 ---
 
@@ -132,7 +168,20 @@ módulo de `std/` (`math random json io net db term time`).
 
 ### GAP-TET-006
 
-**No hay conversión de texto a Int.**
+> **CORREGIDO el 2026-10-28, y el enunciado era falso.** El lenguaje **sí** lee un texto como
+> número: `#|texto|` devuelve el Int, el Float o el texto intacto si no lo es, con cifras de
+> cualquier escritura. Lo sujeta `zyquality/corpus/casts/cifra_de_cualquier_escritura.zy`. Lo
+> señaló el autor: ya lo había encontrado ZyEdit en **GAP-ZYE-008**, corregido el 2026-10-26.
+>
+> ```zymbol
+> #|"42"| → 42     #|"-3"| → -3     #|"4.5"| → 4.5     #|"4x"| → "4x"     #|"٤٢"| → 42
+> ```
+>
+> El hallazgo se queda porque es la **segunda vez** que se llega a la misma conclusión
+> equivocada, por el mismo camino (probar `###`, el cast hermano), y **un día después** de que
+> la primera se corrigiera en otro proyecto. Es evidencia para GAP-ZYE-008, no un hueco nuevo.
+
+**Lo que decía:** que no hay conversión de texto a Int.
 
 ```zymbol
 x = ###"42"
@@ -141,9 +190,22 @@ x = ###"42"
 
 Error en los motores de Rust: `### requires a numeric value, got String`. El juego toma su
 semilla de la línea de comandos (`zymbol run тетраис.zy -- 42`, como recomienda `GUIDE.md` para
-repetir una partida al azar), así que `ввод::число` recorre los caracteres y suma los dígitos.
-GoL escribió la misma función (`_αριθμός`) para sus propios argumentos. Ya son dos aplicaciones
-que la han necesitado.
+repetir una partida al azar), así que `ввод::число` recorría los caracteres y sumaba los dígitos,
+con un tope de 15 cifras para no salir de los enteros seguros. GoL escribió la misma función
+(`αριθμός`, en `μέτρηση/όλα.zy`) para sus propios argumentos.
+
+**Lo que pasa de verdad:** `ввод::число` es ahora `н = #|т|` y un `? (н#?)[1] <> "###"` que
+devuelve 0 para todo lo que no se lea como Int, la misma forma a la que llegó ZyEdit en su
+`to_number`. Acepta lo que el analizador a mano rechazaba: un signo (`-3`; `привить` ya convierte
+cualquier entero en un estado válido del generador), espacios alrededor y cifras de otra
+escritura (`٤٢`). El tope de 15 cifras sobra: fuera de ±(2^53−1) `#|…|` deja el texto, y eso da 0.
+`тесты/ввод` lo comprueba en los tres motores; su golden cambió en una línea
+(`"1234567890123456"` daba 0 por el tope y ahora da el número) y ganó otra con los casos nuevos.
+El límite de 2^53 no está en la prueba porque ahí los motores no coinciden: BUG-TET-009.
+
+**Lo que sigue abierto** es lo de GAP-ZYE-008: ningún error de `###"42"`, `##."42"` o `"12" + 1`
+dice que la forma es `#|texto|`. Esta ficha no propone nada distinto; añade el segundo caso.
+`GoL/μέτρηση/όλα.zy` conserva su `αριθμός` escrito a mano.
 
 ---
 

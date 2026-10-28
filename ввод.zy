@@ -45,17 +45,12 @@
         }
     }
 
-    // The digits of a text as an Int; 0 for anything that is not 1 to 15 digits (there is no
-    // text-to-number cast in the language, so the games each write their own).
+    // A text read as an Int (`#|т|`, digits of any script); 0 for anything that does not
+    // read as one — a Float, a word, or an integer outside ±(2^53−1), which stays a text.
 
     число(т) {
-        ? т$# < 1 || т$# > 15 { <~ 0 }
-        н = 0
-        @ к:т {
-            код = ##!к
-            ? код < 48 || код > 57 { <~ 0 }
-            н = н * 10 + (код - 48)
-        }
+        н = #|т|
+        ? (н#?)[1] <> "###" { <~ 0 }
         <~ н
     }
 

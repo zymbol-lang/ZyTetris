@@ -7,7 +7,8 @@ Spanish, in three skins, with high scores. Zymbol **v0.0.11+**; also runs in the
 as a `.zyp`.
 
 It was built to check whether a game on a Cyrillic core has to be an LDV project: see
-[HALLAZGOS.md](HALLAZGOS.md) for what it found (one engine divergence, five gaps) and
+[HALLAZGOS.md](HALLAZGOS.md) for what it found (two engine divergences and five gaps, one of
+them a conversion that existed and was not found) and
 `ZyTetris_plan.md` for what it was measured against.
 
 ## Play

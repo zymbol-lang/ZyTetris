@@ -6,7 +6,8 @@ ruso, inglés o español, con tres pieles y mejores puntuaciones. Zymbol **v0.0.
 en el playground web como `.zyp`.
 
 Se hizo para comprobar si un juego con núcleo cirílico tiene que ser un proyecto LDV: lo que
-encontró está en [HALLAZGOS.md](HALLAZGOS.md) (una divergencia entre motores y cinco huecos) y
+encontró está en [HALLAZGOS.md](HALLAZGOS.md) (dos divergencias entre motores y cinco huecos,
+uno de ellos una conversión que existía y no se encontró) y
 contra qué se midió, en `ZyTetris_plan.md`.
 
 ## Jugar
