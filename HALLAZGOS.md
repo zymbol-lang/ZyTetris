@@ -12,7 +12,9 @@
 > contra `ZyTetris_plan.md` (M0–M5) y después se corrieron a propósito los doce rojos esperados
 > del plan (R1–R12).
 >
-> **Estado.** Todas las entradas están **ABIERTAS**: nada está decidido. El autor decide, hallazgo
+> **Estado.** El **2026-11-22** (v0.0.12) el autor decidió y se corrigieron BUG-TET-001 y GAP-TET-002: el texto se
+> ordena por punto de código en los cuatro motores, y `GUIDE.md` lo dice. Las demás entradas siguen **ABIERTAS**.
+> Antes de esa fecha, todas lo estaban: nada estaba decidido. El autor decide, hallazgo
 > por hallazgo, si se implementa, se aplaza o se rechaza. Medido con `zymbol 0.0.11` (VM y árbol)
 > y con `web/src/zymbol/zymbol.js` (motor del navegador), el 2026-10-27. El **2026-10-28** se
 > corrigió el enunciado de GAP-TET-006, que era falso, y al corregirlo salió BUG-TET-009.
@@ -43,8 +45,8 @@ Windows, ni la velocidad del motor del navegador bajo carga.
 
 | ID | Tipo | Dónde | Qué | Motores | Estado |
 |----|------|-------|-----|---------|--------|
-| [BUG-TET-001](#bug-tet-001) | BUG | `zymbol.js` | `$^+` / `$^-` sobre textos usan el orden de la configuración regional; los motores de Rust usan el punto de código | **zyjs es el distinto** | ABIERTO |
-| [GAP-TET-002](#gap-tet-002) | GAP | lenguaje / docs | el texto se ordena por punto de código, así que `Ё` va antes de `А` y `ё` después de `я`; no está documentado (R3) | los tres coinciden | ABIERTO |
+| [BUG-TET-001](#bug-tet-001) | BUG | `zymbol.js` | `$^+` / `$^-` sobre textos usan el orden de la configuración regional; los motores de Rust usan el punto de código | **zyjs es el distinto** | **corregido** 2026-11-22 (D-05) |
+| [GAP-TET-002](#gap-tet-002) | GAP | lenguaje / docs | el texto se ordena por punto de código, así que `Ё` va antes de `А` y `ё` después de `я`; no está documentado (R3) | los tres coinciden | **corregido** 2026-11-22: documentado en `GUIDE.md` |
 | [GAP-TET-003](#gap-tet-003) | GAP | lexer | `й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1) | los tres | ABIERTO |
 | [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2) | los tres | ABIERTO |
 | [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12) | los tres | ABIERTO |
@@ -84,6 +86,20 @@ el navegador. Los operadores de comparación coinciden en los tres (`"Z" < "a"` 
 No lo ve la puerta: el corpus no tiene ningún programa que ordene textos con mayúsculas y
 minúsculas mezcladas o con caracteres no ASCII. El juego no ordena texto (la tabla de récords se
 ordena por puntos), así que el fallo se encontró con la sonda R3 del plan y no jugando.
+
+> **CORREGIDO el 2026-11-22** (v0.0.12). **Decisión del autor D-05**, la recomendada de tres: el texto se ordena por
+> **punto de código** en los cuatro motores, en cualquier máquina y en cualquier idioma, y no por la configuración regional
+> (descartadas: ordenar por idioma, que pedía ICU en Rust y dejaba el golden en manos del `LANG`; y punto de código más un
+> comparador de diccionario documentado, que necesita antes GAP-TET-005). `zyjs` ordena ahora con `cmpCodePoint` y, como los
+> demás, ordena y luego invierte para `$^-`. Al sondear salieron dos más: `<` entre textos en `zyjs` iba por unidad UTF-16
+> (`"😀" < "～"` daba `#1`; `ZyDDT/HALLAZGOS/zyjs.md` § ZYJS-073) y, en los cuatro motores, `$^+` no ordenaba los `Char` ni
+> rechazaba lo que no tiene orden (`ZyDDT/HALLAZGOS/GLOBAL.md` § GLB-152). Las tres corregidas el mismo día.
+>
+> | Motor | `["b", "A", "a", "B"] $^+` | `["Ёжик", "Арбуз", "Яма", "Её", "Жук", "Еда"] $^+` |
+> |---|---|---|
+> | los cuatro | `[A, B, a, b]` | `[Ёжик, Арбуз, Еда, Её, Жук, Яма]` |
+>
+> Lo sujeta `zyquality/corpus/collections/sort_orden_natural.zy`.
 
 ### BUG-TET-009
 
@@ -129,6 +145,13 @@ dice (R3).** `GUIDE.md` dice «lexicográfico». En los motores de Rust (y en `<
 es por punto de código, así que `Ё` (U+0401) va antes de `А` (U+0410) y `ё` (U+0451) después de
 `я` (U+044F); en el alfabeto, `Ё` va entre `Е` y `Ж`. Bien puede ser el diseño correcto. Lo que
 falta es la frase que lo diga y, junto con BUG-TET-001, una decisión sobre qué lado tiene razón.
+
+> **CORREGIDO el 2026-11-22** (v0.0.12). La decisión es la de BUG-TET-001 (D-05): por punto de código, que es el diseño.
+> `GUIDE.md` ya no dice «lexicográfico»: § Comparison dice *«By code point when two texts are not both numbers … `Ё`
+> (U+0401) goes before `А` (U+0410)»* y § Sort lo repite para `$^+`/`$^-`, junto con la decisión D-07 —`$^+` no usa la
+> lectura numérica de `<`, porque mezclada con otros textos no es un orden total— y la forma de ordenar números escritos
+> como texto: convertirlos antes, `(t$> (s -> #|s|))$^+`. El orden alfabético ruso, con `Ё` entre `Е` y `Ж`, lo escribe el
+> programa con un comparador; GAP-TET-005 (mayúsculas y minúsculas) sigue abierto.
 
 ### GAP-TET-003
 
