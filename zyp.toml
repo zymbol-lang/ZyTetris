@@ -1,7 +1,7 @@
 [package]
 name = "ZyTetris"
 version = "0.2.0"
-engine = ">=0.0.11"
+engine = ">=0.0.12"
 mode = "vm"
 
 [[script]]

@@ -1,0 +1,15 @@
+// стд/текст.zy — std/text under Russian names, so that no call site in the game reads an
+// English identifier: zymbol-design/I18N.md, «Wrapping the standard library». A translation
+// module holds imports and re-exports, and no logic.
+//   прописные — upper case: «ёлка» → «ЁЛКА»
+//   строчные  — lower case: «ТЕТРИС» → «тетрис»
+//   свёртка   — case folding for comparing: one code point for one, so a Char stays a Char
+# текст {
+    <# std/text => тк
+
+    #> {
+        тк::upper => прописные
+        тк::lower => строчные
+        тк::fold  => свёртка
+    }
+}

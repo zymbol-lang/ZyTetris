@@ -1,18 +1,16 @@
 // ввод.zy — a key becomes an action, in either keyboard layout.
 // On the ЙЦУКЕН layout the keys of the game arrive as whole characters (ц ф ы в), so the
-// same action has a Latin and a Cyrillic spelling. There is no case function in the language
-// (R12): the folding below is done on the code points.
+// same action has a Latin and a Cyrillic spelling. Case is folded by std/text (v0.0.12,
+// D-18), through its Russian names in стд/текст.zy (GAP-TET-005, R12).
 # ввод {
+    <# ./стд/текст => текст
 
     #> { строчная, действие, число, семя }
 
-    // Latin A–Z and Cyrillic А–Я, Ё fold to lower case; everything else is returned as it is.
+    // A key with its case folded, in any script: a Char stays a Char. It used to fold Latin
+    // A–Z and Cyrillic А–Я, Ё by adding 32 to the code point, and no other letter.
     строчная(к) {
-        код = ##!к
-        ? код >= 65 && код <= 90 { <~ ##'(код + 32) }
-        ? код >= 1040 && код <= 1071 { <~ ##'(код + 32) }
-        ? код == 1025 { <~ ##'1105 }
-        <~ к
+        <~ текст::свёртка(к)
     }
 
     действие(к) {

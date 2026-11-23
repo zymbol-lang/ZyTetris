@@ -49,7 +49,7 @@ Windows, ni la velocidad del motor del navegador bajo carga.
 | [GAP-TET-002](#gap-tet-002) | GAP | lenguaje / docs | el texto se ordena por punto de código, así que `Ё` va antes de `А` y `ё` después de `я`; no está documentado (R3) | los tres coinciden | **corregido** 2026-11-22: documentado en `GUIDE.md` |
 | [GAP-TET-003](#gap-tet-003) | GAP | lexer | `й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1) | los tres | ABIERTO |
 | [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2) | los tres | ABIERTO |
-| [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12) | los tres | ABIERTO |
+| [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | ~~no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12)~~ | los tres | **CORREGIDO** 2026-11-23 · v0.0.12, `std/text` (D-18) |
 | [GAP-TET-006](#gap-tet-006) | GAP | texto → número | ~~no hay conversión de texto a Int: `###"42"` es un error; el argumento de semilla necesita un analizador escrito a mano~~ — `#\|texto\|` lo hace; lo que falla es que la forma no se encuentra | los tres | **retirado como incapacidad** 2026-10-28 · la descubribilidad sigue en GAP-ZYE-008 |
 | [IDEA-TET-007](#idea-tet-007) | IDEA | lenguaje | los símbolos de tipo de `#?` (salvo `##_`) no se pueden escribir en una expresión ni en un patrón | los tres | ABIERTO |
 | [IDEA-TET-008](#idea-tet-008) | IDEA | `zymbol-formatter` | un arreglo de 8 números con dos o más negativos se rompe en un número por línea; el mismo arreglo sin negativos queda en una línea | `zymbol fmt` | ABIERTO |
@@ -151,7 +151,7 @@ falta es la frase que lo diga y, junto con BUG-TET-001, una decisión sobre qué
 > (U+0401) goes before `А` (U+0410)»* y § Sort lo repite para `$^+`/`$^-`, junto con la decisión D-07 —`$^+` no usa la
 > lectura numérica de `<`, porque mezclada con otros textos no es un orden total— y la forma de ordenar números escritos
 > como texto: convertirlos antes, `(t$> (s -> #|s|))$^+`. El orden alfabético ruso, con `Ё` entre `Е` y `Ж`, lo escribe el
-> programa con un comparador; GAP-TET-005 (mayúsculas y minúsculas) sigue abierto.
+> programa con un comparador; GAP-TET-005 (mayúsculas y minúsculas) seguía abierto ese día y se corrigió el 2026-11-23.
 
 ### GAP-TET-003
 
@@ -182,6 +182,23 @@ identificadores confusables. En un lenguaje cuyos identificadores pueden escribi
 escritura, el par se alcanza con un descuido normal de teclado en un teclado ruso.
 
 ### GAP-TET-005
+
+> **CORREGIDO el 2026-11-23** (v0.0.12). **Decisión del autor D-18**, la recomendada: un módulo nuevo,
+> `std/text`, con `upper`, `lower` y `fold`, por las reglas de Unicode y sin idioma. `upper` y `lower` son
+> las correspondencias completas (`ß` → `SS`, sigma final) y dan un texto; `fold` pliega punto a punto,
+> conserva la longitud y devuelve lo que recibe, así que un `Char` sigue siendo `Char`. Los cuatro
+> motores dan lo mismo: los del navegador llevan una tabla generada del Unicode de Rust (18.0.0).
+> Descartadas: una marca nueva (ninguna existente la deriva y `^` ya tiene tres significados) y dejarlo
+> como estaba.
+>
+> **Lo que cambió en el juego:** el autor pidió llamarlo en ruso, como dice `zymbol-design/I18N.md`
+> («Wrapping the standard library»). `стд/текст.zy` es esa capa: sólo importa `std/text` y lo reexporta
+> como `прописные`, `строчные` y `свёртка`, sin lógica. `ввод::строчная` ya no suma 32 a dos alfabetos:
+> es `текст::свёртка(к)`, y pliega cualquier escritura. `тесты/ввод` ganó una línea (`É Ü Ω` → `é ü ω`,
+> que la tabla vieja devolvía tal cual) y las 28 comparaciones de `тесты/запуск.sh` siguen en verde. El
+> paquete pide ahora `engine = ">=0.0.12"`, y el `.zyp` del playground se regeneró desde el proyecto.
+> **Queda:** el orden alfabético ruso con `Ё` entre `Е` y `Ж` (ver BUG-TET-001) sigue siendo cosa de un
+> comparador escrito por el programa: `std/text` no ordena.
 
 **No hay función de mayúsculas y minúsculas para texto (R12).** `ТЕТРАИС` ↔ `тетраис` exige que el
 lenguaje sepa qué es una letra. El juego lo necesita para una sola cosa, las teclas: `Ц` y `ц`
@@ -283,7 +300,7 @@ lo que lo evita; si el formateador debería evitarlo él mismo es la pregunta.
 | R9 | Borrar pantalla y ocultar el cursor | **Sin rojo.** `>>\|` hace las dos cosas |
 | R10 | Nombres cirílicos en los récords | **Sin rojo.** Ida y vuelta por JSON en los tres motores (`[["Анна",1200]]`); un archivo ausente o roto es una tabla vacía. En el navegador `std/io` es un disco virtual por ejecución, así que la tabla dura lo que dure la ejecución |
 | R11 | Nombres de archivo y de carpeta en cirílico | **Sin rojo.** `<# ./ядро/фигуры => фигуры` en los tres motores; `рекорды.json` se escribe y se vuelve a leer |
-| R12 | Función de mayúsculas y minúsculas | **Confirmada su ausencia** → GAP-TET-005 |
+| R12 | Función de mayúsculas y minúsculas | **Confirmada su ausencia** → GAP-TET-005, **corregido** el 2026-11-23 con `std/text` (D-18) |
 
 ## Lo construido que el plan no pedía
 
