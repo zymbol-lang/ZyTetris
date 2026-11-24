@@ -48,7 +48,7 @@ Windows, ni la velocidad del motor del navegador bajo carga.
 | [BUG-TET-001](#bug-tet-001) | BUG | `zymbol.js` | `$^+` / `$^-` sobre textos usan el orden de la configuración regional; los motores de Rust usan el punto de código | **zyjs es el distinto** | **corregido** 2026-11-22 (D-05) |
 | [GAP-TET-002](#gap-tet-002) | GAP | lenguaje / docs | el texto se ordena por punto de código, así que `Ё` va antes de `А` y `ё` después de `я`; no está documentado (R3) | los tres coinciden | **corregido** 2026-11-22: documentado en `GUIDE.md` |
 | [GAP-TET-003](#gap-tet-003) | GAP | lexer | ~~`й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1)~~ | los tres | **CORREGIDO** 2026-11-23 · v0.0.12, los nombres se leen en NFC (D-20) |
-| [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2) | los tres | ABIERTO |
+| [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | ~~la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2)~~ | los tres | **CORREGIDO** 2026-11-24 · v0.0.12, aviso del editor (D-21) |
 | [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | ~~no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12)~~ | los tres | **CORREGIDO** 2026-11-23 · v0.0.12, `std/text` (D-18) |
 | [GAP-TET-006](#gap-tet-006) | GAP | texto → número | ~~no hay conversión de texto a Int: `###"42"` es un error; el argumento de semilla necesita un analizador escrito a mano~~ — `#\|texto\|` lo hace; lo que falla es que la forma no se encuentra | los tres | **retirado como incapacidad** 2026-10-28 · la descubribilidad sigue en GAP-ZYE-008 |
 | [IDEA-TET-007](#idea-tet-007) | IDEA | lenguaje | los símbolos de tipo de `#?` (salvo `##_`) no se pueden escribir en una expresión ni en un patrón | los tres | ABIERTO |
@@ -169,8 +169,8 @@ falta es la frase que lo diga y, junto con BUG-TET-001, una decisión sobre qué
 > normalizar y sólo avisar.
 >
 > **El juego no cambia:** ningún fuente de ZyTetris escribe un nombre descompuesto.
-> **Queda:** la `a` latina frente a la `а` cirílica no es equivalencia canónica, así que NFC no la
-> toca; sigue abierta como GAP-TET-004.
+> La `a` latina frente a la `а` cirílica no es equivalencia canónica, así que NFC no la toca: es
+> GAP-TET-004, corregido al día siguiente con un aviso del editor (D-21).
 
 **Dos identificadores que se ven igual y no lo son (R1).**
 
@@ -185,6 +185,22 @@ como indefinida: un mensaje sobre una variable que el usuario ve definida. Los t
 coinciden. Python normaliza los identificadores (NFKC); el lenguaje no ha dicho si debería.
 
 ### GAP-TET-004
+
+> **CORREGIDO el 2026-11-24** (v0.0.12). **Decisión del autor D-21**, la recomendada: los dos nombres
+> siguen siendo válidos y distintos, y **avisa el editor**: el servidor de lenguaje y el panel de
+> problemas del playground, como decidió el autor el 2026-09-25 para los caracteres que se parecen a un
+> símbolo. `zymbol check` y `zymbol run` siguen callados, así que el programa de abajo imprime `1 2` y
+> `check` no dice nada; en el editor, la segunda línea lleva *`'а' looks like 'a' (line 1), a different
+> name: it has U+0430 where 'a' has U+0061`*. La regla es el **esqueleto de confusión de UTS #39**: dos
+> nombres distintos de un fichero con el mismo esqueleto avisan sobre el posterior, y un nombre tras
+> `::` o `.` no cuenta (la capa griega reexporta `mat.E` como `Ε` a propósito). El servidor usa el crate
+> `unicode-security` (Unicode 18); el playground, una tabla generada del mismo `confusables.txt`, y
+> `web/tests/test_lookalike.mjs` comprueba que los dos editores avisan igual en 3 000 nombres. Medido
+> sobre los 3 784 `.zy` del espacio de trabajo: fuera de esa capa griega, sólo avisan las sondas escritas
+> para la decisión del 2026-09-25. Descartadas: que avise también `check` y no hacer nada; para la regla,
+> una tabla corta latín–cirílico–griego.
+>
+> **El juego no cambia:** ningún fuente de ZyTetris tiene dos nombres que se confundan.
 
 **La `a` latina y la `а` cirílica son variables distintas y nada avisa (R2).**
 
