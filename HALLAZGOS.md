@@ -47,7 +47,7 @@ Windows, ni la velocidad del motor del navegador bajo carga.
 |----|------|-------|-----|---------|--------|
 | [BUG-TET-001](#bug-tet-001) | BUG | `zymbol.js` | `$^+` / `$^-` sobre textos usan el orden de la configuración regional; los motores de Rust usan el punto de código | **zyjs es el distinto** | **corregido** 2026-11-22 (D-05) |
 | [GAP-TET-002](#gap-tet-002) | GAP | lenguaje / docs | el texto se ordena por punto de código, así que `Ё` va antes de `А` y `ё` después de `я`; no está documentado (R3) | los tres coinciden | **corregido** 2026-11-22: documentado en `GUIDE.md` |
-| [GAP-TET-003](#gap-tet-003) | GAP | lexer | `й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1) | los tres | ABIERTO |
+| [GAP-TET-003](#gap-tet-003) | GAP | lexer | ~~`й` (U+0439) e `и`+U+0306 son identificadores distintos que se ven igual; el error nombra el que el usuario ve (R1)~~ | los tres | **CORREGIDO** 2026-11-23 · v0.0.12, los nombres se leen en NFC (D-20) |
 | [GAP-TET-004](#gap-tet-004) | GAP | `zymbol check` | la `a` latina y la `а` cirílica son variables distintas y nada avisa (R2) | los tres | ABIERTO |
 | [GAP-TET-005](#gap-tet-005) | GAP | lenguaje | ~~no hay función de mayúsculas y minúsculas para texto; el juego pliega A–Z y А–Я por punto de código (R12)~~ | los tres | **CORREGIDO** 2026-11-23 · v0.0.12, `std/text` (D-18) |
 | [GAP-TET-006](#gap-tet-006) | GAP | texto → número | ~~no hay conversión de texto a Int: `###"42"` es un error; el argumento de semilla necesita un analizador escrito a mano~~ — `#\|texto\|` lo hace; lo que falla es que la forma no se encuentra | los tres | **retirado como incapacidad** 2026-10-28 · la descubribilidad sigue en GAP-ZYE-008 |
@@ -154,6 +154,23 @@ falta es la frase que lo diga y, junto con BUG-TET-001, una decisión sobre qué
 > programa con un comparador; GAP-TET-005 (mayúsculas y minúsculas) seguía abierto ese día y se corrigió el 2026-11-23.
 
 ### GAP-TET-003
+
+> **CORREGIDO el 2026-11-23** (v0.0.12). **Decisión del autor D-20**, la recomendada: un nombre se lee
+> en **NFC**, la composición canónica de Unicode. Las dos grafías de `й` son el mismo nombre en los
+> cuatro motores, y lo mismo vale para funciones, parámetros, etiquetas, nombres dentro de `{…}`, tipos
+> de error y alias de módulo; el programa de abajo imprime `2` y `zymbol check` no avisa de nada. Sólo
+> cuenta la equivalencia canónica: `ﬁ` y `fi` siguen siendo nombres distintos. Las cadenas son datos y
+> conservan lo escrito, igual que una ruta de módulo, que nombra un fichero. `zymbol fmt` deja cada
+> nombre como está escrito. Rust usa el crate `unicode-normalization` (Unicode 18); el navegador, una
+> tabla generada de la misma versión que pasa todo `NormalizationTest.txt`, y
+> `web/tests/test_normalize.mjs` la compara con el lexer de Rust en 4 000 nombres. La prueba del
+> corpus es `zyquality/corpus/i18n/nombres_nfc.zy`. Descartadas: NFKC como Python (une `x²` con `x2`,
+> que se ven distintos), rechazar lo que no esté en NFC (un error sobre un nombre que se ve bien) y no
+> normalizar y sólo avisar.
+>
+> **El juego no cambia:** ningún fuente de ZyTetris escribe un nombre descompuesto.
+> **Queda:** la `a` latina frente a la `а` cirílica no es equivalencia canónica, así que NFC no la
+> toca; sigue abierta como GAP-TET-004.
 
 **Dos identificadores que se ven igual y no lo son (R1).**
 
