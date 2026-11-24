@@ -84,7 +84,7 @@
                 двинулся = #0
                 действие = ""
                 ? клав <> '\0' {
-                    код = ##!клав
+                    код = 0d|клав|
                     ? ввод_имени {
                         // typing a name: Enter keeps it, Esc drops it, Backspace erases
                         ? код == 10 {
