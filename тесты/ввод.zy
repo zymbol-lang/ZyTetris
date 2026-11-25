@@ -43,7 +43,7 @@
 @ к:клавиши {
     >> к " " в::действие(к) ¶
 }
->> в::действие(0d|27|) ¶
+>> в::действие(|27|) ¶
 >> в::строчная('Ё') " " в::строчная('Я') " " в::строчная('Z') " " в::строчная('ж') " " в::строчная('é') ¶
 // Since std/text (D-18) every script folds, not only Latin and Cyrillic: the old table
 // returned these three as they were.
